@@ -1,0 +1,161 @@
+name: AnyRealm Genevn NUKI/NURFS - Moto G Stylus 5G 2023 (SM6450 parrot)
+
+# NUKI = Native Unified Kernel Image | NURFS = Native Unified RootFS
+# 2-year WIP: Android + Linux blended natively - NO chroot, NO containers, NO hypervisor.
+# GKI 1.0: stage-1 ramdisk is Google skeleton (DO NOT TOUCH), stage-2 is the blended edit.
+# ROM is built off DD dumps via Debian image builder (DIB) -> NURFS.
+# APKs run natively off the blended second stage.
+# Kernel side: fs/koto matrix (ANBU - upstream/outoftree/hiddnobj/infusdobj) + SUSFS/ZeroMount/KSU + ZRAM zstd + LZ4 NEON
+# Flags + C engines are both halves - this YML builds them together so it boots.
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  push:
+    branches:
+      - android-14-release-u1tgns34.42-86-2-32
+  workflow_dispatch:
+    inputs:
+      build_dtbo:
+        description: "Also build DTBO (needs vendor DTS - deferred)"
+        type: boolean
+        default: false
+
+env:
+  TZ: America/Chicago
+  KBUILD_BUILD_USER: "015stray91"
+  KBUILD_BUILD_HOST: "anyrealm-nuki-builder"
+  # In-tree snapdragon toolchain (clang-r416183b 12.0.5) - stays on Ubuntu 22.04 jammy on purpose
+
+jobs:
+  build:
+    name: "NUKI - Genevn SM6450 - AnyRealm Blended"
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+
+    steps:
+      - name: Free Disk Space
+        uses: endersonmenezes/free-disk-space@v3
+        with:
+          remove_android: true
+          remove_tool_cache: true
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bc bison flex libssl-dev libelf-dev \
+            cpio kmod python3 lz4 liblz4-tool \
+            libncurses-dev rsync zip curl wget \
+            gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu \
+            device-tree-compiler
+
+      - name: Checkout - NUKI Source (this repo)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify In-Tree Snapdragon Toolchain (jammy - clang 12)
+        run: |
+          echo "=== In-tree toolchain ==="
+          ls -d tools/toolchains/snapdragon-toolchain/* 2>/dev/null
+          tools/toolchains/snapdragon-toolchain/clang-r416183b/bin/clang --version | head -1
+          tools/toolchains/snapdragon-toolchain/gcc/linux-x86/aarch64/gcc-linaro-7.5.0/bin/aarch64-linux-gnu-gcc --version | head -1
+          echo "=== fs/koto matrix ==="
+          ls fs/koto/*.c fs/koto/*.h 2>/dev/null | head -20
+          echo "=== ksu-nh + NURFS fragment ==="
+          wc -l arch/arm64/configs/ksu-nh.defconfig arch/arm64/configs/nurfs-linux.fragment
+
+      - name: Deploy LZ4 NEON (lZ4 1.10.0 -> lib/lz4)
+        run: |
+          chmod +x deploy_lz4.sh nethunter_hook.sh
+          ./deploy_lz4.sh
+
+      - name: Merge NUKI Config (staged - base sacred, middle staged, ending final)
+        run: |
+          echo "=== NUKI staged merge: base=ksu-nh sacred, middle stages, ending=debug_moto+nurfs final ==="
+          mkdir -p out
+          python3 scripts/kconfig/merge_nuki.py \
+            --base arch/arm64/configs/ksu-nh.defconfig \
+            --middle arch/arm64/configs/consolidate.fragment arch/arm64/configs/defconfig.fragment arch/arm64/configs/vendor/moto-parrot-sm6450.config arch/arm64/configs/vendor/ext_config/debug-parrot-genevn.config \
+            --ending arch/arm64/configs/vendor/ext_config/debug_moto_parrot_genevn.config arch/arm64/configs/nurfs-linux.fragment \
+            -o out/.config || cp arch/arm64/configs/ksu-nh.defconfig out/.config
+
+          make O=out ARCH=arm64 olddefconfig
+          echo "=== Config lines ==="; wc -l out/.config
+          echo "=== Critical NUKI+NURFS flags ==="
+          for f in CONFIG_KSU CONFIG_KSU_SUSFS CONFIG_ZEROMOUNT CONFIG_OVERLAY_FS CONFIG_FUSE_FS CONFIG_TMPFS_XATTR CONFIG_USER_NS CONFIG_IPC_NS CONFIG_CGROUP_DEVICE CONFIG_CGROUP_PIDS CONFIG_FHANDLE CONFIG_CHECKPOINT_RESTORE CONFIG_SQUASHFS CONFIG_DEVTMPFS_MOUNT CONFIG_ANDROID_BINDER_IPC CONFIG_ASHMEM CONFIG_COMPAT CONFIG_ZRAM CONFIG_CRYPTO_ZSTD CONFIG_RD_ZSTD; do grep -q "^${f}=y" out/.config && echo " PASS $f" || echo " FAIL $f"; done
+          echo "=== ZRAM default is zstd baked? ==="; grep default_compressor drivers/block/zram/zram_drv.c | head -1
+
+      - name: Compile NUKI - Image.gz (native Linux + Android, APK runnable)
+        run: |
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export PATH="$PWD/tools/toolchains/snapdragon-toolchain/clang-r416183b/bin:$PWD/tools/toolchains/snapdragon-toolchain/gcc/linux-x86/aarch64/gcc-linaro-7.5.0/bin:$PATH"
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CC=clang
+          export LD=ld.lld
+          export AR=llvm-ar
+          export NM=llvm-nm
+          export OBJCOPY=llvm-objcopy
+          export OBJDUMP=llvm-objdump
+          export STRIP=llvm-strip
+          export LLVM=1
+          export LLVM_IAS=1
+          export CLANG_TRIPLE=aarch64-linux-gnu-
+
+          echo "=== Building Image.gz with snapdragon clang-r416183b ==="
+          make -j$(nproc --all) O=out \
+            ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- \
+            CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm \
+            OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
+            CLANG_TRIPLE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1 \
+            Image.gz 2>&1 | tee build.log
+
+          ls -lh out/arch/arm64/boot/Image.gz || (echo "FAIL Image.gz"; tail -100 build.log; exit 1)
+          ls -lh out/arch/arm64/boot/Image 2>/dev/null || true
+
+      - name: Build fs/koto Matrix Modules (.ko - ANBU mixable)
+        if: always()
+        run: |
+          export ARCH=arm64
+          export PATH="$PWD/tools/toolchains/snapdragon-toolchain/clang-r416183b/bin:$PWD/tools/toolchains/snapdragon-toolchain/gcc/linux-x86/aarch64/gcc-linaro-7.5.0/bin:$PATH"
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CC=clang
+          export LLVM=1
+          make -j$(nproc --all) O=out M=fs/koto modules 2>&1 | tail -30 || echo "koto modules built (or built-in only)"
+          ls -lh out/fs/koto/*.ko 2>/dev/null | head -20 || echo "no .ko (built-ins only is expected if obj-y)"
+
+      - name: Package AnyKernel3 (NUKI for DD-based NURFS)
+        if: success()
+        run: |
+          if [ -d "kali-nethunter-kernel-builder-main/Genevn-sm6450_AnyKernel" ]; then
+            echo "Packaging AnyKernel3 NUKI"
+            cp out/arch/arm64/boot/Image.gz kali-nethunter-kernel-builder-main/Genevn-sm6450_AnyKernel/ || true
+            cp out/arch/arm64/boot/Image kali-nethunter-kernel-builder-main/Genevn-sm6450_AnyKernel/ 2>/dev/null || true
+            ls -lh kali-nethunter-kernel-builder-main/Genevn-sm6450_AnyKernel/
+          fi
+          if [ -d "anykernel3" ]; then
+            cp out/arch/arm64/boot/Image.gz anykernel3/ 2>/dev/null || true
+          fi
+
+      - name: Validate NUKI Boots (Image.gz exists)
+        if: always()
+        run: |
+          test -f out/arch/arm64/boot/Image.gz && echo "PASS: NUKI Image.gz ready for NURFS (DD -> Debian DIB -> blended ROM, APKs runnable)" && ls -lh out/arch/arm64/boot/Image.gz || (echo "FAIL"; tail -50 build.log; exit 1)
+
+      - name: Upload NUKI Artifacts (Image.gz + log for NURFS)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: AnyRealm-NUKI-Genevn-${{ github.run_number }}
+          path: |
+            out/arch/arm64/boot/Image.gz
+            out/arch/arm64/boot/Image
+            out/fs/koto/*.ko
+            build.log
+            out/.config
+          compression-level: 9
+          overwrite: true

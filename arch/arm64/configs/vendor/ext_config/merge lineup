@@ -1,0 +1,1 @@
+./scripts/kconfig/merge_config.sh -y -m arch/arm64/configs/ksu-nh.defconfig arch/arm64/configs/consolidate.fragment arch/arm64/configs/defconfig arch/arm64/configs/vendor/moto-parrot-sm6450.config arch/arm64/configs/vendor/ext_config/debug-parrot-genevn.config arch/arm64/configs/vendor/ext_config/debug_moto_parrot_genevn.config .config

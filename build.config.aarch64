@@ -1,0 +1,98 @@
+ARCH=arm64
+LLVM_IAS=1
+CROSS_COMPILE=aarch64-linux-gnu-
+CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
+LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gas/linux-x86
+#!/bin/bash
+ROOTDIR="kernel-msm-1"
+
+DEFCONFIG=arch/arm64/configs/ksu-nh.defconfig
+arch/arm64/configs/consolidate.fragment
+arch/arm64/configs/defconfig
+arch/arm64/configs/vendor/moto-parrot-sm6450.config
+arch/arm64/configs/vendor/ext_config/debug-parrot-genevn.config
+arch/arm64/configs/vendor/ext_config/debug_moto_parrot_genevn.config .
+
+export asop_gcc_toolchain=tools/toolchains/snapdragon-toolchain/gcc/linux-x86/aarch64/gcc-linaro-7.5.0/aarch64-linux-gnu/bin
+export asop_gcc_toolchain=tools/toolchains/snapdragon-toolchain/gcc/linux-x86/aarch64/gcc-linaro-7.5.0/bin
+export llvm_snapdragon_syblzer=tools/toolchains/snapdragon-toolchain/sdclang/linux-x86_64/aarch64-linux-android/bin/
+export snapdrangon_tools=toolchains/snapdragon-toolchain/sdclang/linux-x86_64/bin
+export stock_clang12_bldr=tools/toolchains/snapdragon-toolchain/clang-r416183b/bin
+export source_exc_tool=tool/*
+# Part 1: Cor-le Compression & Performance
+export CONFIG_KERNEL_LZ4=y
+export CONFIG_ZRAM=y
+export CONFIG_ZSMALLOC=y
+export CONFIG_ZCOMP_LZ4K=y
+export CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
+export CONFIG_QCOM_EUD=y
+
+# Part 2: KernelSU Next & SusFS
+export CONFIG_KPROBES=y
+export CONFIG_KPROBE_EVENTS=y
+export CONFIG_KSU_SUSFS=y
+export CONFIG_KSU_SUSFS_HAS_MEM_PAGES=y
+export CONFIG_KSU_SUSFS_SUS_MOUNT=y
+export CONFIG_KSU_SUSFS_ZERO_MOUNT=y
+
+# Part 3: NetHunter Attack Module Drivers
+export CONFIG_USB_GADGET=y
+export CONFIG_USB_CONFIGFS=y
+export CONFIG_USB_CONFIGFS_F_HID=y
+export CONFIG_UHID=y
+export CONFIG_NET=y
+export CONFIG_WIRELESS=y
+export CONFIG_CFG80211=m
+export CONFIG_MAC80211=m
+export CONFIG_NL80211_TESTMODE=y
+export CONFIG_NETFILTER=y
+export CONFIG_IP_NF_MANGLE=y
+export CONFIG_IP6_NF_MANGLE=y
+# --- RUN NATIVE LINUX & EXTERNAL BINARIES ---
+export CONFIG_BINFMT_MISC=y
+export CONFIG_BINFMT_ELF=y
+export CONFIG_COMPAT_BINFMT_ELF=y
+export CONFIG_DEVTMPFS_MOUNT=y
+export CONFIG_USER_NS=y
+
+# --- WINDOWS & CROSS-PLATFORM SYSTEM SUPPORT ---
+# Allows you to mount Windows/PC drives (NTFS/ExFat) with full speed
+export CONFIG_NTFS_FS=y
+export CONFIG_NTFS_RW=y
+export CONFIG_EXFAT_FS=y
+export CONFIG_CIFS=y
+expot CONFIG_CIFS_XATTR=y
+
+# --- THE UNCHAINED "HOME" ENVIRONMENT ---
+# Allows the kernel to handle the complex permissions Linux tools expect
+export CONFIG_TMPFS_POSIX_ACL=y
+export CONFIG_TMPFS_XATTR=y
+
+
+# --- ZRAM SUPPORT ---
+export CONFIG_ZRAM=y
+export CONFIG_ZRAM_WRITEBACK=y
+export CONFIG_ZSMALLOC=y
+export CONFIG_ZBUD=y
+export CONFIG_Z3FOLD=y
+
+# --- RECOMMENDED COMPRESSORS ---
+export CONFIG_CRYPTO_LZ4=y
+exportCONFIG_CRYPTO_ZSTD=y
+
+# --- ENSURE ZSWAP IS DISABLED ---
+export #CONFIG_ZSWAP is not set
+
+MAKE_GOALS="
+Image
+modules
+"
+
+FILES="
+arch/arm64/boot/Image
+vmlinux
+System.map
+vmlinux.symvers
+modules.builtin
+modules.builtin.modinfo
+"
