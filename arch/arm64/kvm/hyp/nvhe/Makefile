@@ -8,6 +8,9 @@ DISABLE_LTO := y
 export DISABLE_LTO
 ccflags-y := -D__KVM_NVHE_HYPERVISOR__ -D__DISABLE_EXPORTS -D__DISABLE_TRACE_MMIO__
 ccflags-y := $(filter-out -flto -fsanitize=cfi%,$(ccflags-y))
+# Hyp assembly (cache.S etc.) must see the same define: read_ctr/this_cpu_offset
+# pick linkable, hyp-safe expansions only under __KVM_NVHE_HYPERVISOR__.
+asflags-y := -D__KVM_NVHE_HYPERVISOR__
 
 hostprogs := gen-hyprel
 HOST_EXTRACFLAGS += -I$(objtree)/include
