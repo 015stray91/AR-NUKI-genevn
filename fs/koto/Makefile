@@ -8,13 +8,15 @@ obj-y += Virtualspace.o
 obj-y += hidden-objects.o
 obj-y += kpm_eud_engine.o
 obj-y += koto_core.o
+obj-y += Continue.o
+obj-y += Kde.o
+obj-y += nm_maps_spoof.o
+obj-y += kernel/
 
 # NOTE: hybrid_mount.h is the header (extracted from Continue.c).
-# The following were rehomed to .archive_* and are NOT built as obj-y:
-#   Continue.c/kde.c/KOTOAMATSUKAMI-CORE.c(1)/main.c/ksu.c -> headers/docs
-#   Addsusfs50.c/Enhanced susfs.c/Zromount.c/KSUsafty.c -> .patch files
-#   nethunter_box.c (userspace multi-call) and sufs_wrapper.c (KPM) live for
-#   NURFS/Debian-image stage, not in-kernel.
+# main.c is the markdown source doc; .patch/.md/.txt are never built.
+# kernel/ subdir holds the sprof set (eud/proc/env/profile/vfs/main).
+# sufs_wrapper.c (KPM) lives for the NURFS/Debian-image stage, not in-kernel.
 
 # --- Matrix variants: loadable .ko that can be mixed like ANBU cells ---
 # Hidden Object = two upstreams merged to hide
@@ -32,7 +34,9 @@ kpm_eud-outoftree-emb-objs := kpm_eud_outoftree-Installemb.o
 # Upstream
 kpm_eud-upstrm-emb-objs := kpm_eud_upstrm-Install-emb.o
 
-# NUKI Colonel: only build the 4 built-ins (VFS twin, hidden objects, KPM EUD engine, Koto core)
+# NUKI Colonel: 10 built-ins (4 core + decl/macro TUs + nm_maps + sprof trio). main.c is the
+doc; .patch/.md never built.
+# Legacy note was: only 4 built-ins (VFS twin, hidden objects, KPM EUD engine, Koto core)
 # The 6 matrix variants (hiddnobj/infusdobj/outoftree/upstrm x test/emb) are for the debos
 # Sage iterate stage, NOT for the production NUKI Colonel boot image
 # Uncomment below to enable matrix variants for debos stage

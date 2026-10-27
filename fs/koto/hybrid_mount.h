@@ -36,6 +36,15 @@
 #define HM_MAX_OVERLAY_DIRS     8
 #define HM_MAX_MOUNT_POINTS     32
 #define HM_MAX_PATH_LEN         256
+#define HM_MAX_URL_LEN          512
+#define HM_MAX_HOST_LEN         64
+
+/* Sync levels for KDE / network mounts */
+#define HM_SYNC_LEVEL_NONE      0
+#define HM_SYNC_LEVEL_STATUS    1
+#define HM_SYNC_LEVEL_FILES     2
+#define HM_SYNC_LEVEL_FULL      3
+#define HM_SYNC_LEVEL_MIRROR    4
 #define HM_PROC_DIR             "hybrid_mount"
 #define HM_PROC_STATUS          "status"
 #define HM_PROC_MODULES         "modules"

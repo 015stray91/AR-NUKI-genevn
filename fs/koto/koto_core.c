@@ -12,8 +12,13 @@
 #include <linux/mount.h>
 #include <linux/uaccess.h>
 
-/* Trackers to verify if the hidden object subsystem elements are initialized */
-extern bool ksu_susfs_enabled;
+/* Canonical definition: read by koto + fs_fuse_anyrealm_fuse (both obj-y).
+ * Tracks whether SUSFS masking is compiled in (KMI 9 / genevn). */
+#ifdef CONFIG_KSU_SUSFS
+bool ksu_susfs_enabled = true;
+#else
+bool ksu_susfs_enabled = false;
+#endif
 extern int zeromount_adbd_redirect(struct dentry *dentry, struct path *path); /* Patch 65 Anchor */
 
 MODULE_LICENSE("GPL");
@@ -23,7 +28,7 @@ MODULE_DESCRIPTION("AnyRealm Hybrid Hidden FUSE Subsystem (KIO-FUSE + SUSFS + Ze
 /* 1. THE ZERO-MOUNT REDIRECTION HOOK (Patch 65 Integration)
  * Intercepts incoming adbd / rish system execution queries at the VFS boundary
  */
-static int anyrealm_fuse_lookup_intercept(struct inode *dir, struct dentry *dentry, unsigned int flags)
+static int __maybe_unused anyrealm_fuse_lookup_intercept(struct inode *dir, struct dentry *dentry, unsigned int flags)
 {
     /* If the hidden ZeroMount driver detects an adbd track query, redirect it systemlessly */
     #ifdef CONFIG_ZEROMOUNT_ADBD
@@ -42,7 +47,7 @@ static int anyrealm_fuse_lookup_intercept(struct inode *dir, struct dentry *dent
  * Ensures that whenever KIO-FUSE streams file clusters to your KDE Plasma layout,
  * root components, NetHunter paths, and custom configuration nodes are cleanly masked.
  */
-static int anyrealm_fuse_readdir_mask(struct file *file, struct dir_context *ctx)
+static int __maybe_unused anyrealm_fuse_readdir_mask(struct file *file, struct dir_context *ctx)
 {
     /* If SUSFS is locked open, intercept directory listings before unprivileged apps scan them */
     if (ksu_susfs_enabled) {
@@ -75,4 +80,3 @@ static void __exit anyrealm_hybrid_fuse_exit(void)
 
 module_init(anyrealm_hybrid_fuse_init);
 module_exit(anyrealm_hybrid_fuse_exit);
-à

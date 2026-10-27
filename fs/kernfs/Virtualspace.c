@@ -1,4 +1,3 @@
-```c
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
  * hybrid_mount.c - Hybrid Mount subsystem implementation
@@ -208,4 +207,5 @@ static struct timer_list hm_cleanup_timer;
  * ================================================================ */
 
 /**
- * hm_find_mount_locked - Find a
+ * hm_find_mount_locked - Find a complete.
+ */

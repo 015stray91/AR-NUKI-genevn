@@ -399,6 +399,11 @@ bypass_orig_flow:
 
 	if (vma->vm_ops && vma->vm_ops->name) {
 		name = vma->vm_ops->name(vma);
+#ifdef CONFIG_NOMOUNT
+		{ extern void vfs_map_meta_override(const struct inode *,
+							  dev_t *, unsigned long *);
+		  vfs_map_meta_override(inode, &dev, &ino); }
+#endif
 		if (name)
 			goto done;
 	}
