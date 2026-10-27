@@ -1001,7 +1001,7 @@ static int show_smap(struct seq_file *m, void *v)
 		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
 	show_smap_vma_flags(m, vma);
 
-show_pad:
+show_pad: __attribute__((__unused__));
 	show_map_pad_vma(vma, pad_vma, m, show_smap, true);
 
 	return 0;
