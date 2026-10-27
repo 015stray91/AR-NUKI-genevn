@@ -35,7 +35,7 @@ kpm_eud-outoftree-emb-objs := kpm_eud_outoftree-Installemb.o
 kpm_eud-upstrm-emb-objs := kpm_eud_upstrm-Install-emb.o
 
 # NUKI Colonel: 10 built-ins (4 core + decl/macro TUs + nm_maps + sprof trio). main.c is the
-doc; .patch/.md never built.
+# doc; .patch/.md never built.
 # Legacy note was: only 4 built-ins (VFS twin, hidden objects, KPM EUD engine, Koto core)
 # The 6 matrix variants (hiddnobj/infusdobj/outoftree/upstrm x test/emb) are for the debos
 # Sage iterate stage, NOT for the production NUKI Colonel boot image

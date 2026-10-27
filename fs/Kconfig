@@ -364,6 +364,15 @@ config ZEROMOUNT
 	  ZeroMount allows path redirection and virtual file injection
 	  without mounting filesystems. Useful for systemless modifications.
 
+config KPM
+	bool "KPM EUD engine (Kotoamatsukami matrix)"
+	default y
+	help
+	  KPM Embed/Update/Deploy engine in fs/koto: the eud engine is
+	  always built into the NUKI image; the matrix variants build
+	  as loadable modules for the iterate stage. Loaded at runtime
+	  via the KSU-Next manager through KPatch-Next.
+
 endmenu
 
 menu "KernelSU - SUSFS"
