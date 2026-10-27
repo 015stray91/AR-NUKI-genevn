@@ -10,7 +10,7 @@
  *   - KDE Connect device sync (level 2)
  *   - Virtual network mounts (VPS / desktop / phone)
  *   - Magic mount expansion + overlay device management
- *   - /proc/hybrid_mount/* status and control interface
+ *   - /proc/hybrid_mount status and control interface
  */
 
 #include <linux/module.h>
@@ -62,7 +62,7 @@ static atomic_t hm_mount_count = ATOMIC_INIT(0);
 static atomic_t hm_module_count = ATOMIC_INIT(0);
 
 static DEFINE_MUTEX(hm_mutex);              /* global mount lock */
-static DEFINE_RWSEM(hm_rwsem);              /* read-write for mount table */
+static DECLARE_RWSEM(hm_rwsem);             /* read-write for mount table (5.10: no DEFINE_RWSEM) */
 static DEFINE_SPINLOCK(hm_spinlock);        /* spinlock for quick flags */
 static struct proc_dir_entry *hm_proc_dir;  /* /proc/hybrid_mount */
 static bool hm_initialized = false;
