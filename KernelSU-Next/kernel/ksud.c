@@ -501,6 +501,8 @@ bool ksu_is_safe_mode()
 	return false;
 }
 
+#ifndef CONFIG_KSU_SUSFS
+
 static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
 	struct pt_regs *real_regs = PT_REAL_REGS(regs);
