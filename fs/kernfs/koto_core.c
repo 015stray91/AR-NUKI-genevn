@@ -7,7 +7,6 @@
 
 #include <linux/module.h>
 #include <linux/fs.h>
-#include <linux/fuse.h>
 #include <linux/namei.h>
 #include <linux/mount.h>
 #include <linux/uaccess.h>

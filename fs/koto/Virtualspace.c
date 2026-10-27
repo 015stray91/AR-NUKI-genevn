@@ -27,12 +27,10 @@
 #include <linux/sched.h>
 #include <linux/nsproxy.h>
 #include <linux/mount.h>
-#include <linux/namespace.h>
 #include <linux/fs.h>
 #include <linux/path.h>
 #include <linux/dcache.h>
 #include <linux/namei.h>
-#include <linux/overlayfs.h>
 #include <linux/workqueue.h>
 #include <linux/timer.h>
 #include <linux/version.h>

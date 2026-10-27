@@ -23,7 +23,6 @@
 #include <linux/module.h>
 #include <linux/fs.h>
 #include <linux/mount.h>
-#include <linux/namespace.h>
 #include <linux/path.h>
 #include <linux/dcache.h>
 #include <linux/slab.h>
@@ -32,7 +31,6 @@
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 #include <linux/namei.h>
-#include <linux/overlayfs.h>
 #include <linux/version.h>
 #include <linux/net.h>
 #include <linux/socket.h>
