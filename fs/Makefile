@@ -12,14 +12,15 @@ subdir-ccflags-y += -DANDROID_GKI_VFS_EXPORT_ONLY=VFS_internal_I_am_really_a_fil
 # ANYREALM MATRIX HOOK ARRAYS (Forced First-Pass Symbol Registration)
 # ===================================================================
 obj-y				+= koto/
-obj-y				+= sufs_wrapper.o
+# obj-y				+= sufs_wrapper.o  # Colonel: no fs/sufs_wrapper.c source; certs copy stays doc-only
 obj-y				+= fs_fuse_anyrealm_fuse.o
 obj-$(CONFIG_KSU_SUSFS)		+= susfs.o
 
 # ===================================================================
 # STANDARD LINUX VFS CORE OBJECTS
 # ===================================================================
-obj-y :=	open.o read_write.o file_table.o super.o \
+# Colonel: += preserves the AnyRealm block above (upstream := would wipe it).
+obj-y +=	open.o read_write.o file_table.o super.o \
 		char_dev.o stat.o exec.o pipe.o namei.o fcntl.o \
 		ioctl.o readdir.o select.o dcache.o inode.o \
 		attr.o bad_inode.o file.o filesystems.o namespace.o \

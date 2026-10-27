@@ -8,8 +8,8 @@ obj-y += Virtualspace.o
 obj-y += hidden-objects.o
 obj-y += kpm_eud_engine.o
 obj-y += koto_core.o
-obj-y += Continue.o
-obj-y += Kde.o
+# NOTE: Continue.c / Kde.c are header-fragment docs (unbalanced #ifndef, no
+# definitions) - deliberately never built, like main.c above.
 obj-y += nm_maps_spoof.o
 obj-y += kernel/
 

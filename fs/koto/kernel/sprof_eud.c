@@ -21,6 +21,9 @@
 #include <linux/netdevice.h>
 #include <linux/etherdevice.h>
 #include <linux/spinlock.h>
+#include <linux/statfs.h>
+#include <linux/path.h>
+#include <linux/namei.h>
 #include "sprof_core.h"
 
 #define QCOM_QFPROM_BASE         0x00780000
@@ -140,9 +143,13 @@ int sprof_qcom_eud_read_ram(struct sprof_hw_profile *hw)
 int sprof_qcom_eud_read_storage(struct sprof_hw_profile *hw)
 {
     struct kstatfs st;
+    struct path path;
     if (!hw) return -EINVAL;
-    if (vfs_statfs(&init_user_ns, &(struct path){.dentry = NULL}, &st) == 0) {
-        hw->root_size_gb = (u64)st.f_blocks * st.f_frsize / (1024ULL * 1024 * 1024);
+    if (kern_path("/", LOOKUP_FOLLOW, &path) == 0) {
+        if (vfs_statfs(&path, &st) == 0) {
+            hw->root_size_gb = (u64)st.f_blocks * st.f_frsize / (1024ULL * 1024 * 1024);
+        }
+        path_put(&path);
     }
     snprintf(hw->root_device, sizeof(hw->root_device), "/dev/block/bootdevice/by-name/system");
     snprintf(hw->root_fs, sizeof(hw->root_fs), "ext4");

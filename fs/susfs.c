@@ -119,12 +119,6 @@ static DEFINE_MUTEX(susfs_mutex_lock_sus_path);
 static LIST_HEAD(LH_SUS_PATH_LOOP);
 const struct qstr susfs_fake_qstr_name = QSTR_INIT("..5.u.S", 7); // used to re-test the dcache lookup, make sure you don't have file named like this!!
 
-void susfs_add_sus_path(void __user **user_info) {
-	struct st_susfs_sus_path info = {0};
-	struct path path;
-	struct inode *inode = NULL;
-	struct fuse_inode *fi = NULL;
-
 #ifdef CONFIG_KSU_SUSFS_HIDDEN_NAME
 struct susfs_hidden_ino_entry {
 	unsigned long ino;
@@ -258,6 +252,12 @@ bool susfs_is_hidden_ino(struct super_block *sb, unsigned long ino)
 }
 EXPORT_SYMBOL(susfs_is_hidden_ino);
 #endif
+
+void susfs_add_sus_path(void __user **user_info) {
+	struct st_susfs_sus_path info = {0};
+	struct path path;
+	struct inode *inode = NULL;
+	struct fuse_inode *fi = NULL;
 
 	if (copy_from_user(&info, (struct st_susfs_sus_path __user*)*user_info, sizeof(info))) {
 		info.err = -EFAULT;
@@ -824,12 +824,12 @@ void susfs_add_sus_kstat_redirect(void __user **user_info) {
 		virtual_entry->info.target_ino = virtual_ino;
 	}
 
-	spin_lock(&susfs_spin_lock_sus_kstat);
+	mutex_lock(&susfs_mutex_lock_sus_kstat);
 	hash_add_rcu(SUS_KSTAT_HLIST, &new_entry->node, new_entry->target_ino);
 	if (virtual_entry) {
 		hash_add_rcu(SUS_KSTAT_HLIST, &virtual_entry->node, virtual_ino);
 	}
-	spin_unlock(&susfs_spin_lock_sus_kstat);
+	mutex_unlock(&susfs_mutex_lock_sus_kstat);
 
 	SUSFS_LOGI("kstat_redirect: RPATH_OK ino=%lu dev=%lu '%s'\n",
 	           new_entry->target_ino, new_entry->info.spoofed_dev, info.real_pathname);
@@ -1672,6 +1672,16 @@ void susfs_get_enabled_features(void __user **user_info) {
 	if (info->err) goto out_copy_to_user;
 	buf_ptr = info->enabled_features + copied_size;
 #endif
+#ifdef CONFIG_KSU_SUSFS_SUS_KSTAT_REDIRECT
+	info->err = copy_config_to_buf("CONFIG_KSU_SUSFS_SUS_KSTAT_REDIRECT\n", buf_ptr, &copied_size, SUSFS_ENABLED_FEATURES_SIZE);
+	if (info->err) goto out_copy_to_user;
+	buf_ptr = info->enabled_features + copied_size;
+#endif
+#ifdef CONFIG_KSU_SUSFS_UNICODE_FILTER
+	info->err = copy_config_to_buf("CONFIG_KSU_SUSFS_UNICODE_FILTER\n", buf_ptr, &copied_size, SUSFS_ENABLED_FEATURES_SIZE);
+	if (info->err) goto out_copy_to_user;
+	buf_ptr = info->enabled_features + copied_size;
+#endif
 
 	info->err = 0;
 out_copy_to_user:
@@ -1902,19 +1912,9 @@ static void susfs_run_extra_works(struct work_struct *work) {
 }
 
 /* susfs_init */
-void susfs_init(void) {\
+void susfs_init(void) {
 	SUSFS_LOGI("Initializing susfs_extra_works\n");
 	INIT_WORK(&susfs_extra_works, susfs_run_extra_works);
-#ifdef CONFIG_KSU_SUSFS_SUS_KSTAT_REDIRECT
-	info->err = copy_config_to_buf("CONFIG_KSU_SUSFS_SUS_KSTAT_REDIRECT\n", buf_ptr, &copied_size, SUSFS_ENABLED_FEATURES_SIZE);
-	if (info->err) goto out_copy_to_user;
-	buf_ptr = info->enabled_features + copied_size;
-#endif
-#ifdef CONFIG_KSU_SUSFS_UNICODE_FILTER
-	info->err = copy_config_to_buf("CONFIG_KSU_SUSFS_UNICODE_FILTER\n", buf_ptr, &copied_size, SUSFS_ENABLED_FEATURES_SIZE);
-	if (info->err) goto out_copy_to_user;
-	buf_ptr = info->enabled_features + copied_size;
-#endif
 	SUSFS_LOGI("susfs is initialized! version: " SUSFS_VERSION " \n");
 }
 
