@@ -57,12 +57,14 @@ enum cam_ois_packet_opcodes {
 	CAM_OIS_PACKET_OPCODE_INIT,
 	CAM_OIS_PACKET_OPCODE_OIS_CONTROL,
 	CAM_OIS_PACKET_OPCODE_READ,
+#ifdef __KERNEL__
 #ifdef CONFIG_MOT_OIS_AF_DRIFT
 	CAM_OIS_PACKET_OPCODE_AF_DRIFT,
 #endif
 #ifdef CONFIG_MOT_OIS_AFTER_SALES_SERVICE
 	CAM_OIS_PACKET_OPCODE_OIS_GYRO_OFFSET,
 #endif
+#endif /* __KERNEL__ */
 	CAM_OIS_PACKET_OPCODE_WRITE_TIME
 };
 
@@ -387,6 +389,7 @@ struct cam_cmd_probe_v2 {
 	__u32    logical_camera_id;
 	char     sensor_name[CAM_SENSOR_NAME_MAX_SIZE];
 	__u32    reserved[4];
+#ifdef __KERNEL__
 #ifdef CONFIG_CCI_ADDR_SWITCH
 	/* add i2c addr switch support*/
 	__u8     i2c_addr_switch;
@@ -397,6 +400,7 @@ struct cam_cmd_probe_v2 {
 	__u32    i2c_switch_reg_data;
 	__u32    i2c_switch_reg_delayMs;
 #endif
+#endif /* __KERNEL__ */
 } __attribute__((packed));
 
 /**
