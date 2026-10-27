@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * sprof_proc.c - Generate /proc/* spoofed content from hw profile
+ * sprof_proc.c - Generate spoofed procfs content from hw profile
  */
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -10,6 +10,7 @@
 #include <linux/seq_file.h>
 #include <linux/mm.h>
 #include <linux/utsname.h>
+#include <linux/delay.h>
 #include "sprof_core.h"
 
 void sprof_build_cpuinfo(struct sprof_profile *p)

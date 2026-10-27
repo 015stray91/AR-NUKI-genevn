@@ -46,7 +46,7 @@ int sprof_vfs_add_spoof(const char *real_path, const char *content, int content_
     s->content_len = content_len;
     s->active = 1;
     spin_lock(&sprof_vfs_lock);
-    list_add_tail(&s, &sprof_fs_spoofs);
+    list_add_tail(&s->list, &sprof_fs_spoofs);
     spin_unlock(&sprof_vfs_lock);
     return 0;
 }
@@ -76,7 +76,7 @@ int sprof_overlay_add_bridge(const char *overlay_path, const char *real_path)
     strncpy(b->real_path, real_path, sizeof(b->real_path) - 1);
     b->active = 1;
     spin_lock(&sprof_vfs_lock);
-    list_add_tail(&b, &sprof_overlay_bridges);
+    list_add_tail(&b->list, &sprof_overlay_bridges);
     spin_unlock(&sprof_vfs_lock);
     return 0;
 }

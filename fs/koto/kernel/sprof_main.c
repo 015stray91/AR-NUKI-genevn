@@ -7,6 +7,7 @@
 #include <linux/init.h>
 #include <linux/proc_fs.h>
 #include <linux/sysfs.h>
+#include <linux/seq_file.h>
 #include "sprof_core.h"
 
 MODULE_LICENSE("GPL");
