@@ -109,7 +109,7 @@ struct appended_stats {
 };
 
 struct ddr_stats_g_data *ddr_gdata;
-bool ddr_freq_update;
+static bool ddr_freq_update;
 ktime_t send_msg_time;
 
 #ifdef CONFIG_SUSPEND_DEBUG_MODULE

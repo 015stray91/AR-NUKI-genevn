@@ -38,9 +38,10 @@
 #include "ufshcd-crypto-qti.h"
 
 #ifdef CONFIG_UFSFEATURE
-#define CREATE_TRACE_POINTS
+/* Declarations only: the single CREATE_TRACE_POINTS emission lives in
+ * ufshcd.c. Defining it here too duplicates every __traceiter_ufshcd_*
+ * symbol at link time (fatal under LTO). */
 #include <trace/events/ufs.h>
-#undef CREATE_TRACE_POINTS
 #endif
 
 #if defined(CONFIG_SCSI_SKHID)
